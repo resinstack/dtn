@@ -1,3 +1,5 @@
+// +build dev
+
 package web
 
 import (
@@ -5,8 +7,7 @@ import (
 	"net/http"
 )
 
-type Dumb struct {
-}
+type Dumb struct {}
 
 func init() {
 	if rp == nil {
