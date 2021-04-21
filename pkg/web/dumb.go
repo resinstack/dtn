@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-type Dumb struct {}
+type Dumb struct{}
 
 func init() {
 	if rp == nil {

@@ -31,6 +31,10 @@ func (gh *GitHub) ExtractVersion(r *http.Request) (string, error) {
 	switch p := event.(type) {
 	case github.PackageEvent:
 		return *p.GetPackage().GetPackageVersion().Version, nil
+	case github.PingEvent:
+		return "", ErrPing
+	default:
+		return "", errors.New("Unknown hook event: "+ p.(*github.Event).GetType())
 	}
 
 	return "", errors.New("Could not extract version")

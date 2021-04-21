@@ -53,7 +53,9 @@ func (s *Server) updateVersion(c echo.Context) error {
 	}
 
 	version, err := prvdr.ExtractVersion(c.Request())
-	if err != nil {
+	if err != nil && err == ErrPing {
+		return c.String(http.StatusOK, "pong")
+	} else if err != nil {
 		return c.String(http.StatusBadRequest, "No version could be extracted")
 	}
 
