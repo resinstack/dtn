@@ -14,6 +14,7 @@ func New() *Server {
 	}
 
 	x.POST("/update-version/:namespace/:job/:group/:task/:provider", x.updateVersion)
+	x.GET("/alive", x.alive)
 
 	return x
 }
@@ -24,6 +25,10 @@ func (s *Server) SetParentLogger(l hclog.Logger) {
 
 func (s *Server) SetNomadProvider(n Nomad) {
 	s.n = n
+}
+
+func (s *Server) alive(c echo.Context) error {
+	return c.String(http.StatusOK, "not dead yet")
 }
 
 func (s *Server) updateVersion(c echo.Context) error {
