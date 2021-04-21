@@ -22,15 +22,15 @@ func NewGitHub() *GitHub {
 }
 
 func (gh *GitHub) ExtractVersion(r *http.Request) (string, error) {
-	hook, _ := github.New(github.Options.Secret(os.Getenv("GITHUB_SECRET")))
+	payload, err := github.ValidatePayload(r, []byte(os.Getenv("GITHUB_SECRET")))
+	if err != nil {
+		return "", errors.New("Could not validate webhook")
+	}
+	event, err := github.ParseWebHook(github.WebHookType(r), payload)
 
-	payload, err := hook.Parse(r,
-		github.PackageEvent,
-	)
-
-	switch p := payload.(type) {
+	switch p := event.(type) {
 	case github.PackageEvent:
-		return p.GetPackage().GetPackageVersion().Version, nil
+		return *p.GetPackage().GetPackageVersion().Version, nil
 	}
 
 	return "", errors.New("Could not extract version")
