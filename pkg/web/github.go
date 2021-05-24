@@ -34,8 +34,27 @@ func (gh *GitHub) ExtractVersion(r *http.Request) (string, error) {
 	case *github.PingEvent:
 		return "", ErrPing
 	default:
-		return "", errors.New("Unknown hook event: "+ event.(*github.Event).GetType())
+		return "", errors.New("Unknown hook event: " + event.(*github.Event).GetType())
 	}
 
 	return "", errors.New("Could not extract version")
+}
+
+func (gh *GitHub) ExtractArtifact(r *http.Request) (string, error) {
+	payload, err := github.ValidatePayload(r, []byte(os.Getenv("GITHUB_SECRET")))
+	if err != nil {
+		return "", errors.New("Could not validate webhook")
+	}
+	event, err := github.ParseWebHook(github.WebHookType(r), payload)
+
+	switch p := event.(type) {
+	case *github.PackageEvent:
+		return *p.GetPackage().Name, nil
+	case *github.PingEvent:
+		return "", ErrPing
+	default:
+		return "", errors.New("Unknown hook event: " + event.(*github.Event).GetType())
+	}
+
+	return "", errors.New("Could not extract artifact")
 }

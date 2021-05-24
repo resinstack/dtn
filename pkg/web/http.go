@@ -13,6 +13,7 @@ func New() *Server {
 		l:    hclog.NewNullLogger(),
 	}
 
+	x.POST("/provider/:provider", x.updateFromProvider)
 	x.POST("/update-version/:namespace/:job/:group/:task/:provider", x.updateVersion)
 	x.GET("/alive", x.alive)
 
@@ -36,23 +37,15 @@ func (s *Server) updateVersion(c echo.Context) error {
 	j := c.Param("job")
 	g := c.Param("group")
 	t := c.Param("task")
-	p := c.Param("provider")
-	version := ""
 
 	s.l.Debug("Attempting to update task version",
 		"namespace", n,
 		"job", j,
 		"group", g,
 		"task", t,
-		"provider", p)
+		"provider", c.Param("provider"))
 
-	prvdr, ok := rp[p]
-	if !ok {
-		s.l.Warn("Request for unknown provider", "request", p, "known", rp)
-		return c.String(http.StatusBadRequest, "Provider is not known")
-	}
-
-	version, err := prvdr.ExtractVersion(c.Request())
+	_, version, err := s.getVersionFromProvider(c)
 	if err != nil && err == ErrPing {
 		return c.String(http.StatusOK, "pong")
 	} else if err != nil {
@@ -64,4 +57,55 @@ func (s *Server) updateVersion(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "An internal error has occured")
 	}
 	return c.String(http.StatusOK, "Task updated successfully")
+}
+
+func (s *Server) updateFromProvider(c echo.Context) error {
+	artifact, version, err := s.getVersionFromProvider(c)
+	if err != nil && err == ErrPing {
+		return c.String(http.StatusOK, "pong")
+	} else if err != nil {
+		return c.String(http.StatusBadRequest, "No version could be extracted")
+	}
+
+	tasks, err := s.n.FindTasksForArtifact(artifact)
+	if err != nil {
+		s.l.Error("Error enumerating tasks", "error", err)
+		return c.String(http.StatusInternalServerError, "Could not enumerate tasks for artifact")
+	}
+
+	for _, task := range tasks {
+		if err := s.n.SetTaskVersion(task.Namespace, task.Job, task.Group, task.Task, version); err != nil {
+			s.l.Warn("Failed to update task",
+				"namespace", task.Namespace,
+				"job", task.Job,
+				"group", task.Group,
+				"task", task.Task,
+				"error", err,
+			)
+		}
+	}
+
+	return c.String(http.StatusOK, "OK")
+}
+
+func (s *Server) getVersionFromProvider(c echo.Context) (string, string, error) {
+	p := c.Param("provider")
+	version := ""
+
+	prvdr, ok := rp[p]
+	if !ok {
+		s.l.Warn("Request for unknown provider", "request", p, "known", rp)
+		return "", "", c.String(http.StatusBadRequest, "Provider is not known")
+	}
+
+	version, err := prvdr.ExtractVersion(c.Request())
+	if err != nil {
+		return "", "", err
+	}
+
+	artifact, err := prvdr.ExtractArtifact(c.Request())
+	if err != nil {
+		return "", "", err
+	}
+	return artifact, version, nil
 }

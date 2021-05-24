@@ -6,6 +6,8 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/nomad/api"
+
+	"github.com/the-maldridge/dtn/pkg/types"
 )
 
 func New() *Nomad {
@@ -46,6 +48,54 @@ func (n *Nomad) FindJob(namespace, job string) (string, error) {
 		}
 	}
 	return "", errors.New("Unknown job")
+}
+
+// FindTasksForArtifact looks across all tasks that dtn can see and
+// returns a list of tasks that are relevant to the current artifact.
+// If you're looking at this its probably because this is too slow and
+// you should implement something semi-stateful based on the event
+// stream.
+func (n *Nomad) FindTasksForArtifact(artifact string) ([]types.NomadTask, error) {
+	jobs, _, err := n.c.Jobs().List(&api.QueryOptions{})
+	if err != nil {
+		return []types.NomadTask{}, err
+	}
+	tasks := []types.NomadTask{}
+	for _, j := range jobs {
+		if j.Stop || j.Type == api.JobTypeBatch {
+			continue // Don't care about periodic invocations
+		}
+		job, _, err := n.c.Jobs().Info(j.Name, &api.QueryOptions{Namespace: j.Namespace})
+		if err != nil {
+			n.l.Warn("Error retrieving job info", "job", j.ID, "error", err)
+		}
+		for _, group := range job.TaskGroups {
+			for _, task := range group.Tasks {
+				if v, ok := task.Meta["dtn.enable"]; !ok || v != "enable" {
+					continue
+				}
+				// DTN is enabled for this task.
+				n.l.Debug("Found a DTN enabled task",
+					"namespace", *job.Namespace,
+					"job", *job.ID,
+					"group", *group.Name,
+					"task", task.Name,
+				)
+
+				if v, ok := task.Meta["dns.artifact"]; ok && v == artifact {
+					tasks = append(tasks,
+						types.NomadTask{
+							Namespace: *job.Namespace,
+							Job:       *job.ID,
+							Group:     *group.Name,
+							Task:      task.Name,
+						})
+				}
+			}
+		}
+	}
+
+	return tasks, nil
 }
 
 func (n *Nomad) GetJob(namespace, job string) (*api.Job, error) {
