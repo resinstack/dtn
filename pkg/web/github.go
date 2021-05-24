@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"errors"
 	"net/http"
 	"os"
@@ -34,7 +35,7 @@ func (gh *GitHub) ExtractVersion(r *http.Request) (string, error) {
 	case *github.PingEvent:
 		return "", ErrPing
 	default:
-		return "", errors.New("Unknown hook event: " + event.(*github.Event).GetType())
+		return "", errors.New("Unknown hook event: " + fmt.Sprintf("%T", event))
 	}
 
 	return "", errors.New("Could not extract version")
@@ -53,7 +54,7 @@ func (gh *GitHub) ExtractArtifact(r *http.Request) (string, error) {
 	case *github.PingEvent:
 		return "", ErrPing
 	default:
-		return "", errors.New("Unknown hook event: " + event.(*github.Event).GetType())
+		return "", errors.New("Unknown hook event: " + fmt.Sprintf("%T", event))
 	}
 
 	return "", errors.New("Could not extract artifact")
