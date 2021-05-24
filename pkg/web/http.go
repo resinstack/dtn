@@ -49,6 +49,7 @@ func (s *Server) updateVersion(c echo.Context) error {
 	if err != nil && err == ErrPing {
 		return c.String(http.StatusOK, "pong")
 	} else if err != nil {
+		s.l.Error("Error extracting version", "error", err)
 		return c.String(http.StatusBadRequest, "No version could be extracted")
 	}
 
@@ -64,6 +65,7 @@ func (s *Server) updateFromProvider(c echo.Context) error {
 	if err != nil && err == ErrPing {
 		return c.String(http.StatusOK, "pong")
 	} else if err != nil {
+		s.l.Error("Error extracting version", "error", err)
 		return c.String(http.StatusBadRequest, "No version could be extracted")
 	}
 
