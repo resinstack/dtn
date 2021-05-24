@@ -28,6 +28,9 @@ func (gh *GitHub) ExtractVersion(r *http.Request) (string, error) {
 		return "", errors.New("Could not validate webhook")
 	}
 	event, err := github.ParseWebHook(github.WebHookType(r), payload)
+	if err != nil {
+		return "", err
+	}
 
 	switch p := event.(type) {
 	case *github.PackageEvent:
@@ -47,6 +50,9 @@ func (gh *GitHub) ExtractArtifact(r *http.Request) (string, error) {
 		return "", errors.New("Could not validate webhook")
 	}
 	event, err := github.ParseWebHook(github.WebHookType(r), payload)
+	if err != nil {
+		return "", err
+	}
 
 	switch p := event.(type) {
 	case *github.PackageEvent:
