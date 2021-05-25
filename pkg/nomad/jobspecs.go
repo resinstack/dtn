@@ -146,6 +146,6 @@ func (n *Nomad) SetTaskVersion(namespace, job, group, task, version string) erro
 		}
 	}
 
-	_, _, err = n.c.Jobs().Register(j, nil)
+	_, _, err = n.c.Jobs().Register(j, &api.WriteOptions{Namespace: namespace})
 	return err
 }
