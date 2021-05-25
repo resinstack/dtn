@@ -2,6 +2,7 @@ package web
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/labstack/echo/v4"
@@ -49,6 +50,8 @@ func (s *Server) updateVersion(c echo.Context) error {
 	if err != nil && err == ErrPing {
 		return c.String(http.StatusOK, "pong")
 	} else if err != nil {
+		u, p, o := c.Request().BasicAuth()
+		s.l.Debug("Basic auth problem?", "u", u, "p", p, "o", o, "w", os.Getenv("DTN_PRVDR_DUMB_AUTH"))
 		s.l.Error("Error extracting version", "error", err)
 		return c.String(http.StatusBadRequest, "No version could be extracted")
 	}
