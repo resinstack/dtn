@@ -2,7 +2,6 @@ package web
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/labstack/echo/v4"
@@ -38,20 +37,28 @@ func (s *Server) updateVersion(c echo.Context) error {
 	j := c.Param("job")
 	g := c.Param("group")
 	t := c.Param("task")
+	p := c.Param("provider")
 
 	s.l.Debug("Attempting to update task version",
 		"namespace", n,
 		"job", j,
 		"group", g,
 		"task", t,
-		"provider", c.Param("provider"))
+		"provider", p)
 
-	_, version, err := s.getVersionFromProvider(c)
+	prvdr, ok := rp[p]
+	if !ok {
+		s.l.Warn("Request for unknown provider", "request", p, "known", rp)
+		return c.String(http.StatusBadRequest, "Provider is not known")
+	}
+
+	version, err := prvdr.ExtractVersion(c.Request())
+	if err != nil {
+		return err
+	}
 	if err != nil && err == ErrPing {
 		return c.String(http.StatusOK, "pong")
 	} else if err != nil {
-		u, p, o := c.Request().BasicAuth()
-		s.l.Debug("Basic auth problem?", "u", u, "p", p, "o", o, "w", os.Getenv("DTN_PRVDR_DUMB_AUTH"))
 		s.l.Error("Error extracting version", "error", err)
 		return c.String(http.StatusBadRequest, "No version could be extracted")
 	}
