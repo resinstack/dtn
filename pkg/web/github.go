@@ -1,8 +1,8 @@
 package web
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 
