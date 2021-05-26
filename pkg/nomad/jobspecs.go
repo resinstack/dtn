@@ -26,6 +26,7 @@ func (n *Nomad) Connect() error {
 	if err != nil {
 		return err
 	}
+	c.SetNamespace("*")
 	n.c = c
 	return nil
 }
