@@ -40,6 +40,7 @@ func (n *Nomad) FindJob(namespace, job string) (string, error) {
 
 	jobs, _, err := n.c.Jobs().List(&qopts)
 	if err != nil {
+		n.l.Warn("Error locating job", "namespace", namespace, "job", job, "error", err)
 		return "", err
 	}
 
@@ -102,10 +103,12 @@ func (n *Nomad) FindTasksForArtifact(artifact string) ([]types.NomadTask, error)
 func (n *Nomad) GetJob(namespace, job string) (*api.Job, error) {
 	id, err := n.FindJob(namespace, job)
 	if err != nil {
+		n.l.Warn("Error getting job", "namespace", namespace, "job", job, "error", err)
 		return nil, err
 	}
 	j, _, err := n.c.Jobs().Info(id, nil)
 	if err != nil {
+		n.l.Warn("Error getting job ID", "namespace", namespace, "job", job, "error", err)
 		return nil, err
 	}
 	return j, nil
@@ -114,6 +117,7 @@ func (n *Nomad) GetJob(namespace, job string) (*api.Job, error) {
 func (n *Nomad) SetTaskVersion(namespace, job, group, task, version string) error {
 	j, err := n.GetJob(namespace, job)
 	if err != nil {
+		n.l.Warn("Error setting task version", "namespace", namespace, "job", job, "error", err)
 		return err
 	}
 
@@ -147,7 +151,7 @@ func (n *Nomad) SetTaskVersion(namespace, job, group, task, version string) erro
 		}
 	}
 
-	n.l.Debug("Deploying to namespace", "intent", namespace, "job", j.Namespace)
+	n.l.Info("Deploying to namespace", "intent", namespace, "job", j.Namespace)
 	_, _, err = n.c.Jobs().Register(j, &api.WriteOptions{Namespace: namespace})
 	return err
 }
