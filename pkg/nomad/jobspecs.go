@@ -146,8 +146,7 @@ func (n *Nomad) SetTaskVersion(namespace, job, group, task, version string) erro
 		}
 	}
 
-	n.c.SetRegion(*j.Region)
-	n.c.SetNamespace(*j.Namespace)
+	n.l.Debug("Deploying to namespace", "namespace", namespace)
 	_, _, err = n.c.Jobs().Register(j, &api.WriteOptions{Namespace: namespace})
 	return err
 }
