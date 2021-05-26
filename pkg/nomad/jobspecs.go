@@ -16,6 +16,7 @@ func New() *Nomad {
 
 func (n *Nomad) SetParentLogger(l hclog.Logger) {
 	n.l = l.Named("nomad")
+	n.l.Info("Logging Enabled")
 }
 
 // Connect initializes the nomad client or returns an error.  Nomad's
@@ -146,7 +147,7 @@ func (n *Nomad) SetTaskVersion(namespace, job, group, task, version string) erro
 		}
 	}
 
-	n.l.Debug("Deploying to namespace", "namespace", namespace)
+	n.l.Debug("Deploying to namespace", "intent", namespace, "job", j.Namespace)
 	_, _, err = n.c.Jobs().Register(j, &api.WriteOptions{Namespace: namespace})
 	return err
 }
