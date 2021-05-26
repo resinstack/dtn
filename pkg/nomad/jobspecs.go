@@ -26,7 +26,6 @@ func (n *Nomad) Connect() error {
 	if err != nil {
 		return err
 	}
-	c.SetNamespace("*")
 	n.c = c
 	return nil
 }
@@ -34,6 +33,7 @@ func (n *Nomad) Connect() error {
 // FindJob returns a job ID if a job exists, otherwise it returns an
 // error that the job can't be found.
 func (n *Nomad) FindJob(namespace, job string) (string, error) {
+	n.c.SetNamespace(namespace)
 	qopts := api.QueryOptions{
 		Namespace: namespace,
 		Prefix:    job,
@@ -107,6 +107,7 @@ func (n *Nomad) GetJob(namespace, job string) (*api.Job, error) {
 		n.l.Warn("Error getting job", "namespace", namespace, "job", job, "error", err)
 		return nil, err
 	}
+	n.c.SetNamespace(namespace)
 	j, _, err := n.c.Jobs().Info(id, nil)
 	if err != nil {
 		n.l.Warn("Error getting job ID", "namespace", namespace, "job", job, "error", err)
@@ -153,6 +154,7 @@ func (n *Nomad) SetTaskVersion(namespace, job, group, task, version string) erro
 	}
 
 	n.l.Info("Deploying to namespace", "intent", namespace, "job", j.Namespace)
+	n.c.SetNamespace(namespace)
 	_, _, err = n.c.Jobs().Register(j, &api.WriteOptions{Namespace: namespace})
 	return err
 }
