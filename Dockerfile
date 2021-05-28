@@ -4,6 +4,6 @@ COPY . .
 RUN go mod vendor && CGO_ENABLED=no go build -tags netgo -ldflags '-w' -o /dtn .
 
 FROM scratch
-LABEL org.opencontainers.image.source https://github.com/the-maldridge/dtn
+LABEL org.opencontainers.image.source https://github.com/resinstack/dtn
 COPY --from=build /dtn /dtn
 ENTRYPOINT ["/dtn"]

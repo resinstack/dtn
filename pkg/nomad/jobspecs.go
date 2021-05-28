@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/nomad/api"
 
-	"github.com/the-maldridge/dtn/pkg/types"
+	"github.com/resinstack/dtn/pkg/types"
 )
 
 func New() *Nomad {

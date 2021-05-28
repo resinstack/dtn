@@ -1,4 +1,4 @@
-module github.com/the-maldridge/dtn
+module github.com/resinstack/dtn
 
 go 1.15
 

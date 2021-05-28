@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/go-hclog"
 	"github.com/labstack/echo/v4"
 
-	"github.com/the-maldridge/dtn/pkg/types"
+	"github.com/resinstack/dtn/pkg/types"
 )
 
 var (

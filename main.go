@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 
-	"github.com/the-maldridge/dtn/pkg/nomad"
-	"github.com/the-maldridge/dtn/pkg/web"
+	"github.com/resinstack/dtn/pkg/nomad"
+	"github.com/resinstack/dtn/pkg/web"
 )
 
 func main() {
